@@ -1,5 +1,6 @@
 //jshint esversion:6
 require("dotenv").config();
+var md5 = require("md5");
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
@@ -19,11 +20,10 @@ const userSchema = new mongoose.Schema({
 });
 //a secret key-string for encryption
 //var secret = "wehavehulk"; this is now in .env file for safe.
-//by this plugin we will able to encrypt our password field.
-userSchema.plugin(encrypt, { secret: process.env.SECRET, encryptedFields: ["password"] });
+//by this plugin we will able to encrypt our password field, commenting this line because I am using md5 hashing.
+//userSchema.plugin(encrypt, { secret: process.env.SECRET, encryptedFields: ["password"] });
 //mongoos-encryption will encrypt at user.save state/function when we call that function.
 // and will decrypt when we user user.find function.
-
 
 const user = mongoose.model("User", userSchema);
 
@@ -42,7 +42,7 @@ app.get("/register", function (req, res) {
 app.post("/register", function (req, res) {
   const newUser = new user({
     email: req.body.username,
-    password: req.body.password,
+    password: md5(req.body.password),
   });
   //this of encryption
   newUser.save(function (err) {
@@ -57,13 +57,14 @@ app.post("/register", function (req, res) {
 
 app.post("/login", function (req, res) {
   const username = req.body.username;
-  const password = req.body.password;
+  const password = md5(req.body.password);
 
   //stage of decryption.
   user.findOne({ email: username }, function (err, foundUser) {
     if (err) {
       console.log(err);
-    } else { // so that we can compare our passowrds.
+    } else {
+      // so that we can compare our passowrds.
       if (foundUser.password == password) {
         res.render("secrets");
       }
