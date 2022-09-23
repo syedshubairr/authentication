@@ -1,4 +1,5 @@
 //jshint esversion:6
+require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
@@ -17,9 +18,9 @@ const userSchema = new mongoose.Schema({
   password: String,
 });
 //a secret key-string for encryption
-var secret = "wehavehulk";
+//var secret = "wehavehulk"; this is now in .env file for safe.
 //by this plugin we will able to encrypt our password field.
-userSchema.plugin(encrypt, { secret: secret, encryptedFields: ["password"] });
+userSchema.plugin(encrypt, { secret: process.env.SECRET, encryptedFields: ["password"] });
 //mongoos-encryption will encrypt at user.save state/function when we call that function.
 // and will decrypt when we user user.find function.
 
