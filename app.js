@@ -1,11 +1,11 @@
-//jshint esversion:6
 require("dotenv").config();
-var md5 = require("md5");
+const bcrpyt = require("bcrypt");
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose = require("mongoose");
 var encrypt = require("mongoose-encryption");
+const saltRound = 10;
 
 const app = express();
 
@@ -40,34 +40,37 @@ app.get("/register", function (req, res) {
 });
 
 app.post("/register", function (req, res) {
-  const newUser = new user({
-    email: req.body.username,
-    password: md5(req.body.password),
-  });
-  //this of encryption
-  newUser.save(function (err) {
-    if (err) {
-      console.log(err);
-    } else {
-      res.render("secrets");
-      console.log("Success newUser");
-    }
+  bcrpyt.hash(req.body.password, saltRound, function (err, hash) {
+    const newUser = new user({
+      email: req.body.username,
+      password: hash,
+    });
+    //this of encryption
+    newUser.save(function (err) {
+      if (err) {
+        console.log(err);
+      } else {
+        res.render("secrets");
+        console.log("Success newUser");
+      }
+    });
   });
 });
 
 app.post("/login", function (req, res) {
   const username = req.body.username;
-  const password = md5(req.body.password);
-
+  const password = req.body.password;
   //stage of decryption.
   user.findOne({ email: username }, function (err, foundUser) {
     if (err) {
       console.log(err);
     } else {
       // so that we can compare our passowrds.
-      if (foundUser.password == password) {
-        res.render("secrets");
-      }
+      bcrpyt.compare(password, foundUser.password, function (err, result) {
+        if (result) {
+          res.render("secrets");
+        }
+      });
     }
   });
 });
